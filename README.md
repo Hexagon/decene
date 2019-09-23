@@ -1,4 +1,6 @@
-A decent network!
+# Work in progress
+
+For real.
 
 # Development setup
 

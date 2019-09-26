@@ -10,6 +10,7 @@
     "blessed": "^0.1.81",
     "blessed-contrib": "^4.8.17",
     "croner": "^1.1.21",
+    "ipaddr.js": "^1.9.1",
     "uuid": "^3.3.3"
   },
   "author": "Hexagon <Hexagon@GitHub>",

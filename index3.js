@@ -40,7 +40,7 @@ table.focus()
 
 log.log("GUI Initiated");
 
-d = new Decent(512, 10, "1,3,3.7",false,false,false,"56k.guru",47474);
+d = new Decent(512, 10, "1,3,3.7",false, 46464, false, "56k.guru", 47474);
 
 d.events.on('repl',(node,messageType) => doLog("REPL:"+node.toString()+">"+messageType));
 d.events.on('send',(node,messageType) => doLog("SEND:"+node+">"+messageType));
@@ -54,6 +54,7 @@ d.events.on('ip',(ip) => {doLog("Public ip changed by public demand:"+ip);});
 d.reg.events.on('invalidate', () => updateTable(d.reg.r));
 d.reg.events.on('dead', () => updateTable(d.reg.r));
 d.reg.events.on('discover', () => updateTable(d.reg.r));
+d.reg.events.on('update', () => updateTable(d.reg.r));
 
 function updateTable(reg) {
 	var data = [];

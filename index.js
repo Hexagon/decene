@@ -33,6 +33,7 @@ d.events.on('recv', (node, message) => {
 d.events.on('upnptry',() => {gui.log.log("Trying to open public port by UPnP.");});
 d.events.on('upnpsuccess',() => {gui.log.log("UPnP Success.");});
 d.events.on('upnpfail',(err) => {gui.log.log("UPnP Failure: ", err);});
+d.events.on('bonjour',(service) => {gui.log.log("Bonjour discovery", service)});
 
 // Handle registry events
 d.reg.events.on('invalidate', () => gui.updateTable(d.node, d.reg.r));

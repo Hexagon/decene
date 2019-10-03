@@ -12,4 +12,4 @@ enter folder
 
 ```npm install```
 
-```node index.js```
+```node index.js --vector 1,3,7```

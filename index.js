@@ -27,7 +27,7 @@ d.events.on('ip',(ip) => {gui.log.log("Public ip changed by public demand:"+ip);
 d.events.on('recv', (message) => {
     gui.log.log("RECV:"+message.from.substr(message.from.length-12)+">"+message.type+message.payload);
     if (message.type=='broadcast') {
-        gui.history.log('BROADCAST  IN@' + d.node.at + '> ' + message.payload);
+        gui.history.log('BROADCAST  IN@' + d.node.at + '> ' + message.payload.message);
     }
     gui.screen.render();
 });

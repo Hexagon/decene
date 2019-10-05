@@ -1,6 +1,12 @@
 var decent = require("./lib/network"),
+    encryption = require("./lib/encryption"),
     gui = require("./lib/gui"),
-    args = require("./lib/cli");
+    args = require("./lib/cli"),
+    id;
+
+if(args.init != undefined) {
+    id = encryption.newIdentity();
+}
 
 // Check arguments
 if(args.vector == undefined) {
@@ -8,8 +14,15 @@ if(args.vector == undefined) {
     process.exit(0);
 }
 
+// Try to load identity
+id = id || encryption.loadIdentity();
+if (!id) {
+    console.log("Could not load identity, run with --init or see --help");
+    process.exit(0);
+} 
+
 // Init decent
-var d = new decent(args.vector,args.ip,args.port,args.spawn);
+var d = new decent(id, args.vector,args.ip,args.port,args.spawn);
 
 // Handle network events
 d.events.on('repl',(node, messageType) => gui.log.log("REPL:"+node.toString()+">"+messageType));

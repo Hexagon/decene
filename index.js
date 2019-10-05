@@ -21,6 +21,9 @@ if (!id) {
     process.exit(0);
 } 
 
+function setTitle(d) {
+    gui.setTitle(d.state, d.node.at, d.connectivity, d.reg.countAt(d.node.at,'alive'),d.reg.countAt(d.node.at), d.reg.count('alive'), d.reg.count());
+}
 // Init decent
 var d = new decent(id, args.vector,args.ip,args.port,args.spawn);
 
@@ -28,10 +31,10 @@ var d = new decent(id, args.vector,args.ip,args.port,args.spawn);
 d.events.on('repl',(node, messageType) => gui.log.log("REPL:"+node.toString()+">"+messageType));
 d.events.on('send',(node, message, err, res) => gui.log.log("SEND:"+node+">"+message.type+":"+err));
 d.events.on('state',(prevState,curState) => {
+    setTitle(d);
     gui.log.log("State changed:"+prevState+">"+curState);
     gui.updateTable(d.node, d.reg.r);
     gui.history.log("State changed:"+prevState+">"+curState);
-    gui.setTitle(curState, d.node.at);
 });
 d.events.on('roaming',(goal,at) => gui.log.log("Roaming: GOAL: "+goal+", at: "+at));
 d.events.on('error', (err) => gui.log.log("ERR:"+err));
@@ -44,10 +47,18 @@ d.events.on('recv', (message) => {
     }
     gui.screen.render();
 });
-d.events.on('upnptry',() => {gui.log.log("Trying to open public port by UPnP.");});
-d.events.on('upnpsuccess',() => {gui.log.log("UPnP Success.");});
-d.events.on('upnpfail',(err) => {gui.log.log("UPnP Failure: ", err);});
-d.events.on('bonjour',(service) => {gui.log.log("Bonjour discovery" + service.host);});
+d.events.on('upnptry',() => {
+    gui.log.log("Trying to open public port by UPnP.");
+    setTitle(d);
+});
+d.events.on('upnpsuccess',() => {
+    gui.log.log("UPnP Success.");
+    setTitle(d);
+});
+d.events.on('upnpfail',(err) => {
+    gui.log.log("UPnP Failure: ", err);
+    setTitle(d);
+});
 
 // Handle registry events
 d.reg.events.on('invalidate', () => gui.updateTable(d.node, d.reg.r));

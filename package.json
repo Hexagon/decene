@@ -9,7 +9,6 @@
   "dependencies": {
     "blessed": "^0.1.81",
     "blessed-contrib": "^4.8.17",
-    "bonjour": "^3.5.0",
     "croner": "^1.1.21",
     "ipaddr.js": "^1.9.1",
     "minimist": "^1.2.0",

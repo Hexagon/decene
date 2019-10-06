@@ -5,7 +5,7 @@ var decent = require("./lib/network"),
     fs = require('fs'),
     id;
 
-if(args.init) {
+if(args.init !== false) {
     id = encryption.newIdentity(args.identity);
 }
 
@@ -18,7 +18,7 @@ if(args.vector == undefined) {
 // Try to load identity
 id = id || encryption.loadIdentity(args.identity);
 if (!id) {
-    console.log("Could not load identity, run with --init or see --help");
+    console.log("Could not load identity, run with --init or see --help\n");
     process.exit(0);
 } 
 

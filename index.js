@@ -2,10 +2,11 @@ var decent = require("./lib/network"),
     encryption = require("./lib/encryption"),
     gui = require("./lib/gui"),
     args = require("./lib/cli"),
+    fs = require('fs'),
     id;
 
-if(args.init != undefined) {
-    id = encryption.newIdentity();
+if(args.init) {
+    id = encryption.newIdentity(args.identity);
 }
 
 // Check arguments
@@ -15,17 +16,25 @@ if(args.vector == undefined) {
 }
 
 // Try to load identity
-id = id || encryption.loadIdentity();
+id = id || encryption.loadIdentity(args.identity);
 if (!id) {
     console.log("Could not load identity, run with --init or see --help");
     process.exit(0);
 } 
 
+// Try to load cache
+var cache;
+try {
+    cache = JSON.parse(fs.readFileSync(args.cache, 'utf8'));
+} catch (err) {
+    console.error('Warning: Could not load cache.');
+}
+
 function setTitle(d) {
     gui.setTitle(d.state, d.node.at, d.connectivity, d.reg.countAt(d.node.at,'alive'),d.reg.countAt(d.node.at), d.reg.count('alive'), d.reg.count());
 }
 // Init decent
-var d = new decent(id, args.vector,args.ip,args.port,args.spawn);
+var d = new decent(id, args.vector,args.address,args.port,args.spawn, cache);
 
 // Handle network events
 d.events.on('repl',(node, messageType) => gui.log.log("REPL:"+node.toString()+">"+messageType));
@@ -63,9 +72,22 @@ d.events.on('upnpfail',(err) => {
 // Handle registry events
 d.reg.events.on('invalidate', () => gui.updateTable(d.node, d.reg.r));
 d.reg.events.on('dead', () => gui.updateTable(d.node, d.reg.r));
-d.reg.events.on('discover', (node) => {gui.updateTable(d.node, d.reg.r); gui.log.log('Discover: ' + node.uuid ); });
-d.reg.events.on('update', (node) => {gui.updateTable(d.node, d.reg.r); ; gui.log.log('Update: ' + node.uuid ); });
-d.reg.events.on('batch', (node) => {gui.updateTable(d.node, d.reg.r); ; gui.log.log('Registry batch updated.'); });
+d.reg.events.on('discover', (node) => {gui.updateTable(d.node, d.reg.r); gui.log.log('Discover: ' + node.uuid ); setTitle(d); });
+d.reg.events.on('update', (node) => {gui.updateTable(d.node, d.reg.r); ; gui.log.log('Update: ' + node.uuid ); setTitle(d); });
+d.reg.events.on('batch', (node) => {
+
+    gui.updateTable(d.node, d.reg.r); 
+    gui.log.log('Registry batch updated.'); 
+
+    fs.writeFile(args.cache, JSON.stringify(d.reg.serialize()), err => {
+      if (err) {
+        gui.log.log("Registry cache flush failed: " + err);
+        return;
+      } else {
+        gui.log.log("Registry cache flushed to disc");
+      }
+    })
+});
 
 // Handle GUI events
 gui.events.on('input', (i) => {

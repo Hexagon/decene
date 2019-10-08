@@ -9,7 +9,7 @@ var
     EventEmitter = require('events'),
     events = new EventEmitter(),
     colors = require('colors/safe'),
-    package= require('../../package.json'),
+    package= require('../package.json'),
     theme = {
         headerBg:25,
         headerFg:231,
@@ -293,7 +293,7 @@ screen.key(['l'], function(ch, key) {
 screen.key([':'], function(ch, key) {
     //allow control the table with the keyboard
     textBox.readInput((err, i) => {
-        events.emit('input', i);
+        events.emit('gui:input', i);
         textBox.clearValue();
         screen.render();
     });

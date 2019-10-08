@@ -17,5 +17,8 @@
     "uuid": "^3.3.3"
   },
   "author": "Hexagon <Hexagon@GitHub>",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^6.0.11"
+  }
 }

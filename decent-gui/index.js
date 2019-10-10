@@ -1,19 +1,24 @@
 var decent = require("../lib/network"),
     encryption = require("../lib/encryption"),
     gui = require("./gui"),
-    args = require("./cli"),
+    args = require("../common/cli"),
     fs = require('fs'),
     id;
-
-// Check arguments
-if(args.vector == undefined) {
-    console.log("Vector is mandatory, see --help.");
-    process.exit(0);
-}
 
 // Create new identity?
 if(args.init !== false) {
     id = encryption.newIdentity(args.identity);
+    console.log("New identity generated and stored at " + args.identity);
+}
+
+// Check arguments
+if(args.vector == undefined) {
+    if (args.init !== false) {
+        process.exit(0);
+    } else {
+        console.log("Vector is mandatory, see --help.");
+        process.exit(0);   
+    }
 }
 
 // Try to load identity

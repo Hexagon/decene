@@ -1,1 +1,1 @@
-const decentTerminal = require('./decent-gui');
+const decentTerminal = require('./decent-cli');

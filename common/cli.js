@@ -10,7 +10,9 @@ var
             init: false,
 			spawn: false,
             identity: os.homedir() + '/.decent.id',
-            cache: os.homedir() + '/.decent.registry.cache'
+            cache: os.homedir() + '/.decent.registry.cache',
+            provide: false,
+            request: false
 		},
 		alias: { v: 'version', h: 'help', a: 'address', p: 'port', s: 'spawn', i: 'identity', c: 'cache', e: 'vector'}
 	});

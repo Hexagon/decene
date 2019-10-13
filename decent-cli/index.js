@@ -38,47 +38,44 @@ try {
 // Init decent
 var d = new decent(id, args.vector,args.address,args.port,args.spawn, cache);
 
+// 
+if (args.provide) {
+    d.resources.provideFile(args.provide);
+}
+
 // Handle network events
-d.events.on('message:reply',(node, messageType) => console.log("REPL:"+node.toString()+">"+messageType));
-d.events.on('message:send',(node, message, err, res) => console.log("SEND:"+node+">"+message.type+":"+err));
-d.events.on('message:received', (message) => {
-    console.log("RECV:"+message.from.substr(message.from.length-12)+">"+message.type+message.payload);
+d.events.on('message:send',(node, message, err, res) => {
     if (message.type=='broadcast') {
-        console.log('BROADCAST  IN@' + d.node.at + '> ' + message.payload.message);
+        console.log('BROADCAST OUT@' + d.node.at + '> ' + message.payload.message);
+    }
+});
+d.events.on('message:received', (message) => {
+    if (message.type=='broadcast') {
+        console.log('BROADCAST IN@' + d.node.at + '> ' + message.payload.message);
+    }
+});
+
+d.events.on('resource:providing',(err,stat) => {
+    if (err) {
+        console.log("Error occurred while providing file: "+err);
+    } else {
+        console.log("Providing resource '" + stat.resourceId + "' from '" + stat.resourcePath);
     }
 });
 
 d.events.on('state:changed',(prevState,curState) => {
-    console.log("State changed:"+prevState+">"+curState);
+    console.log("State changed: "+prevState+" -> "+curState);
 });
 d.events.on('server:error', (err) => console.log("ERR:"+err));
-d.events.on('server:listening', (port) => console.log("Listening at "+port));
-d.events.on('ip:changed',(ip) => {console.log("Public ip changed by public demand:"+ip);});
-
-d.events.on('upnp:trying',() => {
-    console.log("Trying to open public port by UPnP.");
-    
+d.events.on('server:listening', (port) => console.log("Listening at " + port));
+d.events.on('ip:changed',(ip) => {
+    console.log("Public ip verified: "+ip);
 });
+
 d.events.on('upnp:success',() => {
     console.log("UPnP Success.");
-    
-});
-d.events.on('upnp:fail',(err) => {
-    console.log("UPnP Failure: ", err);
     
 });
 
 // Handle registry events
 d.events.on('node:discover', (node) => { console.log('Discover: ' + node.uuid );  });
-d.events.on('node:update', (node) => { ; console.log('Update: ' + node.uuid );  });
-d.events.on('registry:batch', (node) => {
-    console.log('Registry batch updated.'); 
-    fs.writeFile(args.cache, JSON.stringify(d.reg.serialize()), err => {
-      if (err) {
-        console.log("Registry cache flush failed: " + err);
-        return;
-      } else {
-        console.log("Registry cache flushed to disc");
-      }
-    })
-});

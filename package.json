@@ -11,7 +11,7 @@
     "blessed-contrib": "^4.8.17",
     "croner": "^1.1.21",
     "ipaddr.js": "^1.9.1",
-    "minimist": "^1.2.0",
+    "minimist": "^1.2.2",
     "nat-upnp": "^1.1.1",
     "selfsigned": "^1.10.7",
     "uuid": "^3.3.3"

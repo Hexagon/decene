@@ -2,14 +2,6 @@
 
 For real.
 
-# Development setup
+# Usage
 
-Install node.js lts
-
-clone this repo
-
-enter folder
-
-```npm install```
-
-```node index.js --vector 1,3,7```
+See project hexagon/decent-examples

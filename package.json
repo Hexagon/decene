@@ -1,22 +1,18 @@
 {
   "name": "decent",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "A decent way of communicating",
+  "author": "Hexagon <Hexagon@GitHub>",
+  "license": "MIT",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "blessed": "^0.1.81",
-    "blessed-contrib": "^4.8.17",
     "croner": "^1.1.21",
     "ipaddr.js": "^1.9.1",
-    "minimist": "^1.2.3",
     "nat-upnp": "^1.1.1",
     "selfsigned": "^1.10.7",
     "uuid": "^3.3.3"
-  },
-  "author": "Hexagon <Hexagon@GitHub>",
-  "license": "MIT",
-  "devDependencies": {}
+  }
 }

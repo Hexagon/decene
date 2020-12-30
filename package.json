@@ -9,6 +9,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
+    "croner": "^1.1.23",
     "ipaddr.js": "^1.9.1",
     "nat-upnp": "^1.1.1",
     "selfsigned": "^1.10.8",

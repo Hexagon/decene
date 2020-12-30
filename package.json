@@ -11,7 +11,7 @@
   "dependencies": {
     "ipaddr.js": "^1.9.1",
     "nat-upnp": "^1.1.1",
-    "selfsigned": "^1.10.7",
-    "uuid": "^3.3.3"
+    "selfsigned": "^1.10.8",
+    "uuid": "^3.4.0"
   }
 }

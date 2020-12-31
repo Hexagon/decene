@@ -1,7 +1,7 @@
 {
-  "name": "decent",
+  "name": "decene",
   "version": "0.0.2",
-  "description": "A decent way of communicating",
+  "description": "Framework for creating decentralised distributed p2p networks.",
   "author": "Hexagon <Hexagon@GitHub>",
   "license": "MIT",
   "main": "index.js",

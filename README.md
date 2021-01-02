@@ -4,4 +4,4 @@ For real.
 
 # Usage
 
-See project hexagon/decent-examples
+See project hexagon/decene-examples

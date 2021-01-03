@@ -1,9 +1,4 @@
 class Address {
-  // Handles
-  //   - host:port
-  //   - ip:port
-  //   - ip, port
-  //   - ip, port, type
   public ip: string;
   public port?: number;
   public type: string;

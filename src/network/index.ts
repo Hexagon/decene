@@ -24,7 +24,7 @@ class Network {
   private reg: Registry;
   private pool: Pool;
   private connectivity: string;
-  private spawn?: Peer;
+  private spawn?: Address;
   private upnpc?: natUpnp.Client;
 
   constructor(id: IIdentity, host: string, port: number, spawnAddress: string, cache: boolean) {
@@ -61,7 +61,7 @@ class Network {
 
     // Add spawn
     if (spawnAddress) {
-      this.spawn = new Peer(new Address(spawnAddress), 'pending');
+      this.spawn = new Address(spawnAddress);
     }
   }
 
@@ -73,7 +73,9 @@ class Network {
           cert: this.id.key.cert,
           rejectUnauthorized: false,
         },
-        (socket) => this.events.emit('socket:incoming', socket),
+        (connection) => {
+          this.events.emit('socket:incoming', connection);
+        },
       )
       .listen(this.node.address.port, this.node.address.ip, (err: Error, port: number) =>
         this.events.emit('server:listening', this.node.address),
@@ -125,16 +127,24 @@ class Network {
       // Find and ping random pending node
       const firstPending = this.reg.first('pending');
       if (firstPending) {
-        this.send(firstPending, new Message('ping', { node: this.node }));
+        this.send(
+          firstPending,
+          new Message('ping', { node: this.node }),
+          (err: Error) => err && this.events.emit('error', new Error('Error during ping: ' + err)),
+        );
 
         // Ping spawn if registry is empty
       } else if (this.spawn) {
-        this.send(this.spawn, new Message('ping', { node: this.node }));
+        this.send(
+          this.spawn,
+          new Message('ping', { node: this.node }),
+          (err: Error) => err && this.events.emit('error', new Error('Error during spawn ping: ' + err)),
+        );
       }
     });
   }
 
-  reply(socket: Socket, message: Message, callback?: any) {
+  reply(socket: Socket, message: Message, callback: any) {
     if (!socket) {
       this.events.emit('error', new Error("Tried to reply to 'undefined'"));
       return;
@@ -146,7 +156,7 @@ class Network {
     this.pool.reply(socket, messageSerialized, callback);
   }
 
-  send(dest: Peer, message: Message, callback?: any, noCache?: boolean) {
+  send(dest: Peer | Address, message: Message, callback: any, noCache?: boolean) {
     if (!dest) {
       this.events.emit('error', new Error("Tried to send to 'undefined'"));
       return;
@@ -200,7 +210,7 @@ class Network {
       } else if (message.type === 'ping') {
         // Handle from node
         if (message.payload && message.payload.node) {
-          const resolvedNode = new Peer(message.payload.node.address, 'pending', message.payload.node.status);
+          const resolvedNode = new Peer(message.payload.node.address, 'pending', message.payload.node.uuid);
           socket.setNode(resolvedNode);
           this.reg.update(resolvedNode, socket);
 
@@ -213,7 +223,7 @@ class Network {
       } else if (message.type === 'pong') {
         // Handle from node
         if (message.payload && message.payload.node) {
-          const resolvedNode: Peer = new Node(message.payload.node.address, 'pending', message.payload.node.uuid);
+          const resolvedNode: Peer = new Node(message.payload.node.address, 'alive', message.payload.node.uuid);
           socket.setNode(resolvedNode);
           this.reg.update(resolvedNode, socket);
         }

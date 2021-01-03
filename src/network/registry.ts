@@ -1,8 +1,7 @@
-import Node from './peer.js';
-import Address from './address.js';
+import Address from './address';
 import { EventEmitter } from 'events';
-import Peer from './peer.js';
-import Socket from './socket.js';
+import Peer from './peer';
+import Socket from './socket';
 
 class Registry {
   private events: EventEmitter;

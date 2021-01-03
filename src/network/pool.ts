@@ -30,6 +30,7 @@ class Pool {
     s.events.once('disconnected', (node) => {
       this.connections[node.uuid] = undefined;
     });
+    s.events.on('error', (err: Error) => this.events.emit('socket:error', err));
   }
 
   send(peer: Address | Peer, message: MessageSerialized, callback?: any, noCache?: boolean) {
@@ -75,6 +76,7 @@ class Pool {
       c.events.on('message', (msg) =>
         this.events.emit('message:incoming', msg, c, destination ? destination.uuid : undefined),
       );
+      c.events.on('error', (err: Error) => this.events.emit('socket:error', err));
 
       if (!noCache && destination.uuid) this.connections[destination.uuid] = c;
     }

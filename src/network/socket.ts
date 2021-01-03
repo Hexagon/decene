@@ -1,6 +1,5 @@
 import { IIdentity } from '../encryption/identity';
 import Peer from './peer';
-import net from 'net';
 import tls from 'tls';
 import EventEmitter from 'events';
 
@@ -53,6 +52,7 @@ class Socket {
     this.socket.on('timeout', () => this.events.emit('timeout'));
     this.socket.on('end', () => this.events.emit('end'));
     this.socket.on('error', (error) => {
+      this.events.emit('error', error);
       if (this.socket) this.socket.end();
     });
     this.socket.on('close', (error) => this.events.emit('close', error));

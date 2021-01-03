@@ -3,7 +3,7 @@ import network from './network';
 
 const Decene = {
   network,
-  encryption
+  encryption,
 };
 
 module.exports = Decene;

@@ -152,6 +152,7 @@ class Network {
         );
       }
     });
+
     // Send discovery to a random alive node every 30 seconds
     const _discoverer = Cron('*/30 * * * * *', () => {
       // Find and ping random pending node
@@ -191,7 +192,6 @@ class Network {
       node,
       new Message('locate', {}),
       (err: Error) => err && this.events.emit('error', new Error('Error during locate: ' + err)),
-      true,
     );
   }
 
@@ -212,51 +212,89 @@ class Network {
   }
 
   receive(message: MessageSerialized, socket: Socket) {
-    this.events.emit('message:received', message, socket);
+    // Bail out if message.type is missing
+    if (!message.type) {
+      this.events.emit('error', 'Invalid message received');
+      return;
+    }
 
-    try {
-      // Act on incoming messages
-      if (message.type === 'registry') {
+    // Run default message handlers
+    switch (message.type) {
+      case 'registry': {
         // Handle incoming batch update
         if (message.payload && message.payload.registry) {
           this.reg.batchUpdate(message.payload.registry);
         }
-      } else if (message.type === 'locate') {
+        break;
+      }
+      case 'locate': {
         this.reply(socket, new Message('registry', { registry: this.reg.serialize('alive') }), (err: Error) =>
           this.events.emit('error', 'Error during reply ' + err),
         );
-      } else if (message.type === 'ping') {
-        // Handle from node
+        break;
+      }
+      case 'ping': {
         if (message.payload && message.payload.node) {
-          const resolvedNode = new Peer(message.payload.node.address, 'pending', message.payload.node.uuid);
-          socket.setNode(resolvedNode);
-          this.reg.update(resolvedNode, socket);
+          // Handle from peer
+          const resolvedPeer = this.handleFromPeer(socket, message);
 
+          // Try to send a public pong, informing remote peer of it's connectivity, set noCache to true to use a new connection
+          if (resolvedPeer) {
+            this.send(
+              resolvedPeer,
+              new Message('publicpong', { node: this.node, publicIp: socket.remoteAddress }),
+              (err: Error) => err && this.events.emit('error', new Error('Error during reply: ')),
+              true,
+            );
+          }
+
+          // Send a reply on active socket, so that the remote peer gets a reply even if it's not publically available
           this.reply(
             socket,
-            new Message('pong', { node: this.node, publicIp: socket.remoteAddress }),
+            new Message('pong', { node: this.node }),
             (err: Error) => err && this.events.emit('error', new Error('Error during reply: ')),
           );
         }
-      } else if (message.type === 'pong') {
+        break;
+      }
+      case 'pong': {
         // Handle from node
-        if (message.payload && message.payload.node) {
-          const resolvedNode: Peer = new Node(message.payload.node.address, 'alive', message.payload.node.uuid);
-          socket.setNode(resolvedNode);
-          this.reg.update(resolvedNode, socket);
-        }
+        this.handleFromPeer(socket, message);
+        break;
+      }
+      case 'publicpong': {
+        // Handle from node
+        this.handleFromPeer(socket, message);
+
         // Handle public ip votes
         if (message.payload && message.payload.publicIp) {
           this.votePublicIp(message.payload.publicIp);
         }
+        break;
       }
-    } catch (e) {
-      this.events.emit('error', 'Failed to receive message: ' + e);
+      default: {
+        // Notify event system that a unhandled message arrived
+        this.events.emit('message:unhandled', message, socket);
+        break;
+      }
     }
+
+    // Notify event system that a message arrived
+    this.events.emit('message:received', message, socket);
   }
 
+  handleFromPeer(socket?: Socket, message?: MessageSerialized): Peer | undefined {
+    // Use ip from active socket, use port from supplied information
+    if (socket && socket.remoteAddress && message && message.payload && message.payload.node) {
+      const resolvedAddress = new Address(socket.remoteAddress, message.payload.node.address.port);
+      const resolvedNode = new Peer(resolvedAddress, 'pending', message.payload.node.uuid);
+      socket.setNode(resolvedNode);
+      this.reg.update(resolvedNode, socket);
+      return resolvedNode;
+    }
+  }
   votePublicIp(ip: string) {
-    let winner = this.votes.add(ip);
+    const winner = this.votes.add(ip);
     if (winner && winner !== this.node.address.ip) {
       this.node.address.ip = winner;
       this.node.address.type = 'public';

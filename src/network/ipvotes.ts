@@ -9,7 +9,7 @@ class IPVotes {
 
   private ipCheck(ip: string) {
     try {
-      let parsedIp: ipaddrJs.IPv4 | ipaddrJs.IPv6 = ipaddrJs.parse(ip);
+      const parsedIp: ipaddrJs.IPv4 | ipaddrJs.IPv6 = ipaddrJs.parse(ip);
       return parsedIp;
     } catch (e) {
       return null;
@@ -18,7 +18,7 @@ class IPVotes {
 
   public add(ip: string): string | false | undefined {
     // Check ip
-    let ipAddr = this.ipCheck(ip);
+    const ipAddr = this.ipCheck(ip);
     if (ipAddr === null) {
       return false;
     }

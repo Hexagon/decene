@@ -31,6 +31,22 @@ class Registry {
       }
     }
   }
+  random(status: string) {
+    const result = [];
+
+    for (const currIndex of Object.keys(this.r)) {
+      const currNode: Peer = this.r[currIndex];
+      if (currNode && (!status || currNode.status === status)) {
+        result.push(currNode);
+      }
+    }
+
+    if (result.length > 0) {
+      return result[Math.floor(Math.random() * result.length)];
+    } else {
+      return;
+    }
+  }
   all(status: string) {
     const result = [];
     for (const currIndex of Object.keys(this.r)) {
@@ -54,9 +70,13 @@ class Registry {
   invalidate() {
     for (const currIndex of Object.keys(this.r)) {
       const currNode: Peer = this.r[currIndex];
+
+      // Kill nodes after being pending for 24 hours
       if (currNode.lastUpdate && Date.now() - currNode.lastUpdate > 24 * 60 * 60 * 1000) {
         this.events.emit('node:dead', currNode);
         this.r[currIndex] = undefined;
+
+        // Flag nodes for ping after 30 seconds
       } else if (currNode.lastUpdate && Date.now() - currNode.lastUpdate > 30000) {
         this.events.emit('node:invalidate', currNode);
         currNode.invalidate();
@@ -85,7 +105,7 @@ class Registry {
 
     for (const currIndex of Object.keys(r)) {
       const n: Peer = r[currIndex];
-      if (n && n.status === 'alive') {
+      if (n) {
         if (n.uuid && !this.r[n.uuid]) {
           n.status = 'pending';
         } else if (n.uuid) {
@@ -98,9 +118,19 @@ class Registry {
 
     this.events.emit('registry:batch');
   }
-  serialize() {
+
+  serialize(status: string) {
+    const result: any = {};
+    for (const currIndex of Object.keys(this.r)) {
+      const currNode: Peer = this.r[currIndex];
+      if (currNode && (!status || currNode.status === status)) {
+        result[currIndex] = currNode;
+      }
+    }
+    return result;
     return this.r;
   }
+
   isEmpty() {
     return !Object.values(this.r).length;
   }

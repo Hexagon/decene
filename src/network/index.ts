@@ -6,12 +6,12 @@ import Address from './address';
 import Pool from './pool';
 import tls, { TLSSocket } from 'tls';
 import Cron from 'croner';
-import ipaddrJs from 'ipaddr.js';
 import EventEmitter from 'events';
 import natUpnp from 'nat-upnp';
 import Peer from './peer';
 import { IIdentity } from '../encryption/identity';
 import Socket from './socket';
+import IPVotes from './ipvotes';
 
 class Network {
   private events: EventEmitter;
@@ -19,7 +19,7 @@ class Network {
   private state: string;
   private upnp: boolean;
   private tryingupnp: boolean;
-  private hostInventory: any;
+  private votes: IPVotes;
   private node: Peer;
   private reg: Registry;
   private pool: Pool;
@@ -37,7 +37,7 @@ class Network {
 
     this.tryingupnp = false;
 
-    this.hostInventory = {};
+    this.votes = new IPVotes();
 
     this.node = new Peer(new Address(host, port), 'alive', this.id.uuid);
 
@@ -52,7 +52,7 @@ class Network {
     // Handle incoming messages
     this.events.on('message:incoming', (message, socket) => this.receive(message, socket));
 
-    // Handle discovered nodes
+    // Always request registry from newly discovered nodes
     this.events.on('node:discover', (node) => this.locate(node));
 
     this.createServer();
@@ -120,26 +120,44 @@ class Network {
   }
 
   loop() {
+    // Ping a pending node every fifth second
     const _locator = Cron('*/5 * * * * *', () => {
-      // Make nodes pending
+      // Refresh registry
       this.reg.invalidate();
 
       // Find and ping random pending node
-      const firstPending = this.reg.first('pending');
-      if (firstPending) {
+      const randomPending = this.reg.random('pending');
+      if (randomPending) {
         this.send(
-          firstPending,
+          randomPending,
           new Message('ping', { node: this.node }),
           (err: Error) => err && this.events.emit('error', new Error('Error during ping: ' + err)),
         );
-
+      } else if (this.reg.all('alive').length > 0) {
+        // Find and ping random alive node
+        const randomAlive = this.reg.random('alive');
+        if (randomAlive) {
+          this.send(
+            randomAlive,
+            new Message('ping', { node: this.node }),
+            (err: Error) => err && this.events.emit('error', new Error('Error during ping: ' + err)),
+          );
+        }
         // Ping spawn if registry is empty
-      } else if (this.spawn) {
+      } else if (this.spawn && this.reg.all('alive').length === 0) {
         this.send(
           this.spawn,
           new Message('ping', { node: this.node }),
           (err: Error) => err && this.events.emit('error', new Error('Error during spawn ping: ' + err)),
         );
+      }
+    });
+    // Send discovery to a random alive node every 30 seconds
+    const _discoverer = Cron('*/30 * * * * *', () => {
+      // Find and ping random pending node
+      const randomAlive = this.reg.random('alive');
+      if (randomAlive) {
+        this.locate(randomAlive);
       }
     });
   }
@@ -204,7 +222,7 @@ class Network {
           this.reg.batchUpdate(message.payload.registry);
         }
       } else if (message.type === 'locate') {
-        this.reply(socket, new Message('registry', { registry: this.reg.serialize() }), (err: Error) =>
+        this.reply(socket, new Message('registry', { registry: this.reg.serialize('alive') }), (err: Error) =>
           this.events.emit('error', 'Error during reply ' + err),
         );
       } else if (message.type === 'ping') {
@@ -238,33 +256,13 @@ class Network {
   }
 
   votePublicIp(ip: string) {
-    try {
-      if (!ip || (ip && ipaddrJs.parse(ip).range() === 'private')) {
-        this.node.address.type = 'private';
-        return;
-      }
-    } catch (e) {
-      this.events.emit('error', new Error('Invalid public ip received from remote node: ' + ip));
-      return;
-    }
-
-    this.hostInventory[ip] = (this.hostInventory[ip] || 0) + 1;
-
-    let votes = 0;
-    let winner;
-
-    for (const currentIp of Object.keys(this.hostInventory)) {
-      const currentVotes = this.hostInventory[currentIp];
-      if (currentVotes && currentVotes > votes) {
-        votes = currentVotes;
-        winner = currentIp;
-      }
-    }
-
+    let winner = this.votes.add(ip);
     if (winner && winner !== this.node.address.ip) {
       this.node.address.ip = winner;
       this.node.address.type = 'public';
       this.events.emit('ip:changed', winner);
+    } else if (winner === false && this.node.address.type !== 'public') {
+      this.node.address.type = 'private';
     }
   }
 }

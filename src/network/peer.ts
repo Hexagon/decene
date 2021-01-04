@@ -1,32 +1,24 @@
 import Address from './address';
+import PeerStatus from './enums/peerstatus';
 
 class Peer {
   public uuid?: string;
   public address: Address;
-  public status: string;
+  public status: PeerStatus;
   public lastUpdate: number | undefined;
 
-  constructor(addr: Address, status: string, uuid?: string) {
+  constructor(addr: Address, status: PeerStatus, uuid?: string) {
     this.uuid = uuid;
     this.address = addr;
     this.status = status;
     this.lastUpdate = undefined;
   }
-
-  toString(): string {
-    if (this.address) {
-      return this.address.ip + ':' + this.address.port;
-    } else {
-      return '';
-    }
-  }
-
   flagUpdated() {
     this.lastUpdate = Date.now();
   }
 
   invalidate() {
-    this.status = 'pending';
+    this.status = PeerStatus.Pending;
   }
 }
 

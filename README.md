@@ -6,7 +6,7 @@ For real.
 
 ## Short version
 
-See project ```hexagon/decene-examples```
+See repository [hexagon/decene-examples](https://github.com/hexagon/decene-examples)```
 
 ## A little longer version
 
@@ -22,7 +22,7 @@ let idLocation = '~/.decene.id';
 let cacheLocation = "~/.decene.registy";
 
 // Try to load identity from cache, or create a new identity
-let id = id || encryption.loadIdentity(idLocation);
+let id = encryption.loadIdentity(idLocation);
 if (!id) {
     // Create
     id = encryption.newIdentity(idLocation);
@@ -89,14 +89,15 @@ d.events.on('registry:batch', (node) => {
 ```
 
 
-# Development of this framework
+# Development
 
 1. Clone decene adjacent to your reference project, using decent-examples
 
 ```bash
 cd my-projects-folder
 git clone ..../decene
-git clone ..../decene-examples```
+git clone ..../decene-examples
+```
 
 2. Edit the decene imort in the reference project, example
 

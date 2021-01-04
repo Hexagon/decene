@@ -24,7 +24,8 @@ class IPVotes {
     }
 
     // Do not act on private ips
-    if (['linkLocal', 'private', 'loopback'].includes(ipAddr.range())) {
+    ipAddr.range();
+    if (['linkLocal', 'private', 'loopback', 'carrierGradeNat'].includes(ipAddr.range())) {
       return false;
     }
 

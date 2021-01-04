@@ -1,6 +1,5 @@
-import Node from './peer';
 import Message from './message';
-import MessageSerialized from './messageserialized';
+import MessageSerialized from './interfaces/messageserialized';
 import Registry from './registry';
 import Address from './address';
 import Pool from './pool';
@@ -9,6 +8,7 @@ import Cron from 'croner';
 import EventEmitter from 'events';
 import natUpnp from 'nat-upnp';
 import Peer from './peer';
+import PeerStatus from './enums/peerstatus';
 import { IIdentity } from '../encryption/identity';
 import Socket from './socket';
 import IPVotes from './ipvotes';
@@ -16,7 +16,6 @@ import IPVotes from './ipvotes';
 class Network {
   private events: EventEmitter;
   private id: IIdentity;
-  private state: string;
   private upnp: boolean;
   private tryingupnp: boolean;
   private votes: IPVotes;
@@ -32,14 +31,13 @@ class Network {
 
     this.id = id;
 
-    this.state = 'booting';
     this.upnp = false;
 
     this.tryingupnp = false;
 
     this.votes = new IPVotes();
 
-    this.node = new Peer(new Address(host, port), 'alive', this.id.uuid);
+    this.node = new Peer(new Address(host, port), PeerStatus.Alive, this.id.uuid);
 
     this.reg = new Registry(this.events, this.node, cache);
 
@@ -112,13 +110,6 @@ class Network {
     }
   }
 
-  setState(state: string) {
-    if (state !== this.state) {
-      this.events.emit('state:changed', this.state, state);
-      this.state = state;
-    }
-  }
-
   loop() {
     // Ping a pending node every fifth second
     const _locator = Cron('*/5 * * * * *', () => {
@@ -126,16 +117,16 @@ class Network {
       this.reg.invalidate();
 
       // Find and ping random pending node
-      const randomPending = this.reg.random('pending');
+      const randomPending = this.reg.random(PeerStatus.Pending);
       if (randomPending) {
         this.send(
           randomPending,
           new Message('ping', { node: this.node }),
           (err: Error) => err && this.events.emit('error', new Error('Error during ping: ' + err)),
         );
-      } else if (this.reg.all('alive').length > 0) {
+      } else if (this.reg.all(PeerStatus.Alive).length > 0) {
         // Find and ping random alive node
-        const randomAlive = this.reg.random('alive');
+        const randomAlive = this.reg.random(PeerStatus.Alive);
         if (randomAlive) {
           this.send(
             randomAlive,
@@ -144,7 +135,7 @@ class Network {
           );
         }
         // Ping spawn if registry is empty
-      } else if (this.spawn && this.reg.all('alive').length === 0) {
+      } else if (this.spawn && this.reg.all(PeerStatus.Alive).length === 0) {
         this.send(
           this.spawn,
           new Message('ping', { node: this.node }),
@@ -156,7 +147,7 @@ class Network {
     // Send discovery to a random alive node every 30 seconds
     const _discoverer = Cron('*/30 * * * * *', () => {
       // Find and ping random pending node
-      const randomAlive = this.reg.random('alive');
+      const randomAlive = this.reg.random(PeerStatus.Alive);
       if (randomAlive) {
         this.locate(randomAlive);
       }
@@ -196,7 +187,7 @@ class Network {
   }
 
   broadcast(message: Message) {
-    const all = this.reg.all('alive');
+    const all = this.reg.all(PeerStatus.Alive);
     if (this.node !== undefined && all.length > 0) {
       for (const n of all) {
         this.send(
@@ -228,7 +219,7 @@ class Network {
         break;
       }
       case 'locate': {
-        this.reply(socket, new Message('registry', { registry: this.reg.serialize('alive') }), (err: Error) =>
+        this.reply(socket, new Message('registry', { registry: this.reg.serialize(PeerStatus.Alive) }), (err: Error) =>
           this.events.emit('error', 'Error during reply ' + err),
         );
         break;
@@ -287,7 +278,7 @@ class Network {
     // Use ip from active socket, use port from supplied information
     if (socket && socket.remoteAddress && message && message.payload && message.payload.node) {
       const resolvedAddress = new Address(socket.remoteAddress, message.payload.node.address.port);
-      const resolvedNode = new Peer(resolvedAddress, 'pending', message.payload.node.uuid);
+      const resolvedNode = new Peer(resolvedAddress, PeerStatus.Alive, message.payload.node.uuid);
       socket.setNode(resolvedNode);
       this.reg.update(resolvedNode, socket);
       return resolvedNode;

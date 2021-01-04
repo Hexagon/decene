@@ -1,6 +1,6 @@
 {
   "name": "decene",
-  "version": "0.0.10",
+  "version": "0.0.11",
   "description": "Framework for creating decentralised distributed p2p networks.",
   "author": "Hexagon <github.com/hexagon>",
   "license": "MIT",
@@ -18,10 +18,10 @@
   },
   "dependencies": {
     "croner": "^1.1.23",
-    "ipaddr.js": "^1.9.1",
+    "ipaddr.js": "^2.0.0",
     "nat-upnp": "^1.1.1",
     "selfsigned": "^1.10.8",
-    "uuid": "^3.4.0"
+    "uuid": "^8.3.2"
   },
   "devDependencies": {
     "@types/jest": "^26.0.19",

@@ -1,6 +1,7 @@
 import Address from './address';
 import { EventEmitter } from 'events';
 import Peer from './peer';
+import PeerStatus from './enums/peerstatus';
 import Socket from './socket';
 
 class Registry {
@@ -31,7 +32,7 @@ class Registry {
       }
     }
   }
-  random(status: string) {
+  random(status: PeerStatus) {
     const result = [];
 
     for (const currIndex of Object.keys(this.r)) {
@@ -47,7 +48,7 @@ class Registry {
       return;
     }
   }
-  all(status: string) {
+  all(status: PeerStatus) {
     const result = [];
     for (const currIndex of Object.keys(this.r)) {
       const currNode: Peer = this.r[currIndex];
@@ -57,7 +58,7 @@ class Registry {
     }
     return result;
   }
-  count(status: string) {
+  count(status: PeerStatus) {
     const result = [];
     for (const currIndex of Object.keys(this.r)) {
       const currNode: Peer = this.r[currIndex];
@@ -107,7 +108,7 @@ class Registry {
       const n: Peer = r[currIndex];
       if (n) {
         if (n.uuid && !this.r[n.uuid]) {
-          n.status = 'pending';
+          n.status = PeerStatus.Pending;
         } else if (n.uuid) {
           n.status = this.r[n.uuid].status;
           n.lastUpdate = Math.max(this.r[n.uuid].lastUpdate, this.r[n.uuid].lastUpdate);
@@ -119,7 +120,7 @@ class Registry {
     this.events.emit('registry:batch');
   }
 
-  serialize(status: string) {
+  serialize(status?: PeerStatus.Alive) {
     const result: any = {};
     for (const currIndex of Object.keys(this.r)) {
       const currNode: Peer = this.r[currIndex];
@@ -128,7 +129,6 @@ class Registry {
       }
     }
     return result;
-    return this.r;
   }
 
   isEmpty() {

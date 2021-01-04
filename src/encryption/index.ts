@@ -1,17 +1,23 @@
 // @ts-ignore
 import selfsigned from 'selfsigned';
-import uuid from 'uuid';
+import { v1 as uuidv1 } from 'uuid';
 import fs from 'fs';
 import { IIdentity } from './identity';
 
-function newIdentity(sFilePath: string) {
+function newIdentityData() {
   const attrs = [{ name: 'commonName', value: 'decene.network' }];
   const pems = selfsigned.generate(attrs, { days: 365, keySize: 2048 });
 
   const data: IIdentity = {
-    uuid: uuid.v1(),
+    uuid: uuidv1(),
     key: pems,
   };
+
+  return data;
+}
+
+function newIdentity(sFilePath: string) {
+  const data = newIdentityData();
 
   try {
     fs.writeFileSync(sFilePath, JSON.stringify(data));
@@ -40,4 +46,4 @@ function loadIdentity(sFilePath: string) {
   return id;
 }
 
-export default { loadIdentity, newIdentity };
+export default { loadIdentity, newIdentity, newIdentityData };

@@ -1,8 +1,9 @@
 import Socket from './socket';
 import Address from './address';
 import Peer from './peer';
+import PeerStatus from './enums/peerstatus';
 import Message from './message';
-import MessageSerialized from './messageserialized';
+import MessageSerialized from './interfaces/messageserialized';
 import { IIdentity } from '../encryption/identity';
 import { EventEmitter } from 'events';
 import Registry from './registry';
@@ -37,7 +38,7 @@ class Pool {
     // Find destination
     let destination: Peer | undefined;
     if (peer instanceof Address) {
-      destination = new Peer(peer, 'pending');
+      destination = new Peer(peer, PeerStatus.Pending);
     } else if (peer instanceof Peer) {
       if (peer.uuid) destination = this.reg.get(peer.uuid);
     }

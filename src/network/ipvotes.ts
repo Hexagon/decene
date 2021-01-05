@@ -1,14 +1,14 @@
 import ipaddrJs from 'ipaddr.js';
 
 interface IWinner {
-  ip? : string,
-  type : "public" | "private" | "none"
-};
+  ip?: string;
+  type: 'public' | 'private' | 'none';
+}
 
 class IPVotes {
   private privateVotes: any;
   private publicVotes: any;
-  
+
   constructor() {
     this.privateVotes = {};
     this.publicVotes = {};
@@ -23,8 +23,7 @@ class IPVotes {
     }
   }
 
-  public add(ip: string, type: "public" | "private"): IWinner | false | undefined {
-
+  public add(ip: string, type: 'public' | 'private'): IWinner | false | undefined {
     // Check ip
     const ipAddr = this.ipCheck(ip);
     if (ipAddr === null) {
@@ -37,14 +36,14 @@ class IPVotes {
       return false;
     }
 
-    if (type==="public") {
+    if (type === 'public') {
       this.publicVotes[ip] = (this.publicVotes[ip] || 0) + 1;
     } else {
       this.privateVotes[ip] = (this.privateVotes[ip] || 0) + 1;
     }
   }
 
-  public winner() : IWinner {
+  public winner(): IWinner {
     // Check public votes
     let publicVoteCount = 0;
     let publicWinner;
@@ -58,9 +57,9 @@ class IPVotes {
     }
 
     if (publicWinner) {
-      let winner : IWinner = {
+      const winner: IWinner = {
         ip: publicWinner,
-        type: "public"
+        type: 'public',
       };
       return winner;
     }
@@ -78,18 +77,17 @@ class IPVotes {
     }
 
     if (privateWinner) {
-      let winner : IWinner = {
+      const winner: IWinner = {
         ip: privateWinner,
-        type: "private"
+        type: 'private',
       };
       return winner;
     }
 
     return {
-      type: "none"
+      type: 'none',
     };
   }
-
 }
 
 export { IPVotes, IWinner };

@@ -8,11 +8,11 @@ describe('IPv4 voting', () => {
     const voter = new IPVotes();
 
     // Act
-    voter.add(testIp, "public");
+    voter.add(testIp, 'public');
 
     // Assert
     const result = voter.winner();
-    expect(result.type).toEqual("none");
+    expect(result.type).toEqual('none');
     expect(result.ip).not.toBeDefined();
   });
 
@@ -23,11 +23,11 @@ describe('IPv4 voting', () => {
     const voter = new IPVotes();
 
     // Act
-    voter.add(testIp, "public");
+    voter.add(testIp, 'public');
 
     // Assert
     const result = voter.winner();
-    expect(result.type).toEqual("none");
+    expect(result.type).toEqual('none');
   });
 
   test('Does not accept private ips (172.16.x)', () => {
@@ -37,11 +37,11 @@ describe('IPv4 voting', () => {
     const voter = new IPVotes();
 
     // Act
-    voter.add(testIp, "public");
+    voter.add(testIp, 'public');
 
     // Assert
     const result = voter.winner();
-    expect(result.type).toEqual("none");
+    expect(result.type).toEqual('none');
   });
 
   test('Does not accept private ips (192.168.x)', () => {
@@ -51,11 +51,11 @@ describe('IPv4 voting', () => {
     const voter = new IPVotes();
 
     // Act
-    voter.add(testIp, "public");
+    voter.add(testIp, 'public');
 
     // Assert
     const result = voter.winner();
-    expect(result.type).toEqual("none");
+    expect(result.type).toEqual('none');
   });
 
   test('Do accept public ips (86.x)', () => {
@@ -65,14 +65,14 @@ describe('IPv4 voting', () => {
     const voter = new IPVotes();
 
     // Act
-    voter.add(testIp, "public");
+    voter.add(testIp, 'public');
 
     // Assert
     const result = voter.winner();
-    expect(result.type).toEqual("public");
+    expect(result.type).toEqual('public');
     expect(result.ip).toEqual(testIp);
   });
-  
+
   test('Do accept public nated ips as private (86.x)', () => {
     // Arrange
     const testIp = '86.1.2.3';
@@ -80,11 +80,11 @@ describe('IPv4 voting', () => {
     const voter = new IPVotes();
 
     // Act
-    voter.add(testIp, "private");
+    voter.add(testIp, 'private');
 
     // Assert
     const result = voter.winner();
-    expect(result.type).toEqual("private");
+    expect(result.type).toEqual('private');
     expect(result.ip).toEqual(testIp);
   });
 });
@@ -97,11 +97,11 @@ describe('IPv6 voting', () => {
     const voter = new IPVotes();
 
     // Act
-    voter.add(testIp, "public");
+    voter.add(testIp, 'public');
 
     // Assert
     const result = voter.winner();
-    expect(result.type).toEqual("none");
+    expect(result.type).toEqual('none');
   });
 
   test('Does not accept local ip', () => {
@@ -111,11 +111,11 @@ describe('IPv6 voting', () => {
     const voter = new IPVotes();
 
     // Act
-    voter.add(testIp, "public");
+    voter.add(testIp, 'public');
 
     // Assert
     const result = voter.winner();
-    expect(result.type).toEqual("none");
+    expect(result.type).toEqual('none');
   });
 
   test('Do accept public ips', () => {
@@ -125,11 +125,11 @@ describe('IPv6 voting', () => {
     const voter = new IPVotes();
 
     // Act
-    voter.add(testIp, "public");
+    voter.add(testIp, 'public');
 
     // Assert
     const result = voter.winner();
-    expect(result.type).toEqual("public");
+    expect(result.type).toEqual('public');
     expect(result.ip).toEqual(testIp);
   });
 });
@@ -141,21 +141,21 @@ describe('Overall voting', () => {
     const validIp1 = '201.1.2.3';
     const validIp2 = '80.1.2.3';
     const voter = new IPVotes();
-    voter.add(invalidIp1,"private");
-    voter.add(invalidIp1,"public");
-    voter.add(invalidIp1,"private");
-    voter.add(invalidIp1,"private");
-    voter.add(validIp1,"public");
-    voter.add(validIp1,"public");
-    voter.add(validIp1,"public");
-    voter.add(validIp2,"private");
-    voter.add(validIp2,"private");
-    voter.add(validIp2,"private");
-    voter.add(validIp2,"private");
+    voter.add(invalidIp1, 'private');
+    voter.add(invalidIp1, 'public');
+    voter.add(invalidIp1, 'private');
+    voter.add(invalidIp1, 'private');
+    voter.add(validIp1, 'public');
+    voter.add(validIp1, 'public');
+    voter.add(validIp1, 'public');
+    voter.add(validIp2, 'private');
+    voter.add(validIp2, 'private');
+    voter.add(validIp2, 'private');
+    voter.add(validIp2, 'private');
 
     // Assert
     const result = voter.winner();
-    expect(result.type).toEqual("public");
+    expect(result.type).toEqual('public');
     expect(result.ip).toEqual(validIp1);
   });
 });

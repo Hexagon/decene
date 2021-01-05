@@ -23,7 +23,8 @@ class Network {
   private connectivity: string;
   private spawn?: Address;
   private upnpc?: natUpnp.Client;
-
+  private server?: tls.Server;
+  private serverListening: boolean;
   constructor(id: IIdentity, host: string, port: number, spawnAddress: string, cache: boolean) {
     this.events = new EventEmitter();
 
@@ -51,6 +52,7 @@ class Network {
     // Always request registry from newly discovered nodes
     this.events.on('node:discover', (node) => this.locate(node));
 
+    this.serverListening = false;
     this.createServer();
 
     this.loop();
@@ -62,20 +64,21 @@ class Network {
   }
 
   createServer() {
-    tls
-      .createServer(
-        {
-          key: this.id.key.private,
-          cert: this.id.key.cert,
-          rejectUnauthorized: false,
-        },
-        (connection) => {
-          this.events.emit('socket:incoming', connection);
-        },
-      )
-      .listen(this.node.address.port, this.node.address.ip, 511, () =>
-        this.events.emit('server:listening', this.node.address),
-      );
+    this.server = tls.createServer(
+      {
+        key: this.id.key.private,
+        cert: this.id.key.cert,
+        rejectUnauthorized: false,
+      },
+      (connection) => {
+        this.events.emit('socket:incoming', connection);
+      },
+    );
+
+    this.server.listen(this.node.address.port, this.node.address.ip, 511, () => {
+      this.serverListening = true;
+      this.events.emit('server:listening', this.node.address);
+    });
   }
 
   tryUpnp() {
@@ -153,6 +156,11 @@ class Network {
   }
 
   reply(socket: Socket, message: Message, callback: any) {
+    if (!this.serverListening) {
+      // Tried to send message after server shutdown, or before server start
+      return;
+    }
+
     if (!socket) {
       this.events.emit('error', new Error("Tried to reply to 'undefined'"));
       return;
@@ -165,6 +173,11 @@ class Network {
   }
 
   send(dest: Peer | Address, message: Message, callback: any, noCache?: boolean) {
+    if (!this.serverListening) {
+      // Tried to send message after server shutdown, or before server start
+      return;
+    }
+
     if (!dest) {
       this.events.emit('error', new Error("Tried to send to 'undefined'"));
       return;
@@ -232,7 +245,7 @@ class Network {
             this.send(
               resolvedPeer,
               new Message('publicpong', { node: this.node, ip: socket.remoteAddress }),
-              (err: Error) => err && this.events.emit('error', new Error('Error during reply: ')),
+              (err: Error) => err && this.events.emit('error', new Error('Error during reply: ' + err)),
               true,
             );
           }
@@ -288,16 +301,22 @@ class Network {
     }
   }
 
-  voteIp(ip: string, type: "public" | "private") {
+  voteIp(ip: string, type: 'public' | 'private') {
     this.votes.add(ip, type);
-    let winner = this.votes.winner();
-    if (winner.type !== "none" && winner.ip && winner.ip !== this.node.address.ip) {
+    const winner = this.votes.winner();
+    if (winner.type !== 'none' && winner.ip && winner.ip !== this.node.address.ip) {
       this.node.address.ip = winner.ip;
       this.node.address.type = winner.type;
       this.events.emit('ip:changed', winner);
     }
   }
-  
+
+  shutdown() {
+    if (this.server && this.serverListening) {
+      this.serverListening = false;
+      this.server.close();
+    }
+  }
 }
 
 export default Network;

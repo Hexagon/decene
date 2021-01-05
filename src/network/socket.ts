@@ -1,12 +1,11 @@
 import { IIdentity } from '../encryption/identity';
-import Peer from './peer';
+import { Peer } from './peer';
 import tls from 'tls';
-import EventEmitter from 'events';
+import { EventEmitter } from 'events';
 
 class Socket {
   private buffer: string;
   public events: EventEmitter;
-  private used: boolean;
   private id: IIdentity;
   private header: string;
   private separator: string;
@@ -22,7 +21,6 @@ class Socket {
   constructor(id: IIdentity, remote: Peer | tls.TLSSocket, callback?: any) {
     this.buffer = '';
     this.events = new EventEmitter();
-    this.used = false;
     this.id = id;
     this.header = 'DEC-BOM>';
     this.separator = '<DEC-EOM\0';
@@ -130,8 +128,6 @@ class Socket {
 
     prepData = this.header + prepData + this.separator;
 
-    this.used = true;
-
     if (this.socket) {
       const isKernelBufferFull = this.socket.write(prepData);
       if (isKernelBufferFull) {
@@ -158,8 +154,6 @@ class Socket {
 
   // When receive client data.
   data(_: this, data: string) {
-    this.used = true;
-
     this.buffer += data;
 
     // Silently prevent buffer overflow

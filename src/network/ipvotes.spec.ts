@@ -130,4 +130,16 @@ describe('Overall voting', () => {
     // Assert
     expect(result).toEqual(validIp1);
   });
+
+  test('Adding invalid ip returns null', () => {
+    // Arrange
+    const invalidIp = '192.168.0.1.1';
+    const voter = new IPVotes();
+
+    // Act
+    const result = voter.add(invalidIp);
+
+    // Assert
+    expect(result).toBeFalsy();
+  });
 });

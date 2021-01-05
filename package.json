@@ -1,16 +1,17 @@
 {
   "name": "decene",
-  "version": "0.0.11",
+  "version": "0.0.12",
   "description": "Framework for creating decentralised distributed p2p networks.",
   "author": "Hexagon <github.com/hexagon>",
   "license": "MIT",
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
   "scripts": {
-    "test": "jest --config jest.config.json",
+    "test": "jest --config jest.config.json --coverage",
     "build": "tsc",
     "format": "prettier --write \"src/**/*.ts\"",
-    "lint": "tslint -p tsconfig.json"
+    "lint": "tslint -p tsconfig.json",
+    "all": "npm run-script format && npm run-script lint && npm run-script build && npm run-script test"
   },
   "repository": {
     "type": "git",
@@ -26,7 +27,7 @@
   "devDependencies": {
     "@types/jest": "^26.0.19",
     "@types/nat-upnp": "^1.1.0",
-    "@types/node": "^10.17.50",
+    "@types/node": "^14.14.20",
     "@types/uuid": "^8.3.0",
     "jest": "^26.6.3",
     "prettier": "^2.2.1",

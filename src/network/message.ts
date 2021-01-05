@@ -2,6 +2,7 @@ interface MessageSerialized {
   type: string;
   payload: any;
 }
+
 class Message implements MessageSerialized {
   public type: string;
   public payload: any;
@@ -18,3 +19,4 @@ class Message implements MessageSerialized {
 }
 
 export default Message;
+export { Message, MessageSerialized };

@@ -1,9 +1,7 @@
 import Socket from './socket';
 import Address from './address';
-import Peer from './peer';
-import PeerStatus from './enums/peerstatus';
-import Message from './message';
-import MessageSerialized from './interfaces/messageserialized';
+import { Peer, PeerStatus } from './peer';
+import { Message, MessageSerialized } from './message';
 import { IIdentity } from '../encryption/identity';
 import { EventEmitter } from 'events';
 import Registry from './registry';
@@ -45,7 +43,7 @@ class Pool {
 
     // Bail out if destination not found
     if (!destination) {
-      callback && callback(new Error('Recipient not found.'), destination);
+      if (callback) callback(new Error('Recipient not found.'), destination);
       return;
     }
 
@@ -53,10 +51,9 @@ class Pool {
     if (destination.uuid) {
       if (!noCache && this.connections[destination.uuid]) {
         if (this.connections[destination.uuid].send(message)) {
-          callback && callback(undefined, destination);
-          return;
+          if (callback) callback(undefined, destination);
         } else {
-          callback && callback(new Error('Unknown error'));
+          if (callback) callback(new Error('Unknown error'));
         }
       }
     }
@@ -66,12 +63,12 @@ class Pool {
       const c = new Socket(this.id, destination);
       c.events.once('connected', () => {
         c.send(message);
-        callback && callback(undefined, destination);
+        if (callback) callback(undefined, destination);
       });
       c.events.once('disconnected', () => {
         if (destination && destination.uuid) {
           if (!noCache) this.connections[destination.uuid] = undefined;
-          callback && callback(new Error('Connection failed'));
+          if (callback) callback(new Error('Connection failed'));
         }
       });
       c.events.on('message', (msg) =>
@@ -86,9 +83,9 @@ class Pool {
   reply(socket: Socket, message: MessageSerialized, callback?: any) {
     try {
       socket.send(message);
-      callback && callback(undefined, socket);
+      if (callback) callback(undefined, socket);
     } catch (e) {
-      callback && callback(new Error('Socket not connected:' + e));
+      if (callback) callback(new Error('Socket not connected:' + e));
     }
   }
 }

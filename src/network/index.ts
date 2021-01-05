@@ -1,14 +1,12 @@
-import Message from './message';
-import MessageSerialized from './interfaces/messageserialized';
+import Message, { MessageSerialized } from './message';
 import Registry from './registry';
 import Address from './address';
 import Pool from './pool';
 import tls, { TLSSocket } from 'tls';
 import Cron from 'croner';
-import EventEmitter from 'events';
+import { EventEmitter } from 'events';
 import natUpnp from 'nat-upnp';
-import Peer from './peer';
-import PeerStatus from './enums/peerstatus';
+import { Peer, PeerStatus } from './peer';
 import { IIdentity } from '../encryption/identity';
 import Socket from './socket';
 import IPVotes from './ipvotes';
@@ -75,7 +73,7 @@ class Network {
           this.events.emit('socket:incoming', connection);
         },
       )
-      .listen(this.node.address.port, this.node.address.ip, (err: Error, port: number) =>
+      .listen(this.node.address.port, this.node.address.ip, 511, () =>
         this.events.emit('server:listening', this.node.address),
       );
   }

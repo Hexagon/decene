@@ -1,7 +1,6 @@
 import Address from './address';
 import { EventEmitter } from 'events';
-import Peer from './peer';
-import PeerStatus from './enums/peerstatus';
+import { Peer, PeerStatus } from './peer';
 import Socket from './socket';
 
 class Registry {

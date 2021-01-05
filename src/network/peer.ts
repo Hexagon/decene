@@ -1,5 +1,10 @@
 import Address from './address';
-import PeerStatus from './enums/peerstatus';
+
+enum PeerStatus {
+  Pending = 'pending',
+  Alive = 'alive',
+  Dead = 'dead',
+}
 
 class Peer {
   public uuid?: string;
@@ -22,4 +27,4 @@ class Peer {
   }
 }
 
-export default Peer;
+export { Peer, PeerStatus };

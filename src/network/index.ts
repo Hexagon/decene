@@ -9,7 +9,7 @@ import natUpnp from 'nat-upnp';
 import { Peer, PeerStatus } from './peer';
 import { IIdentity } from '../encryption/identity';
 import Socket from './socket';
-import IPVotes from './ipvotes';
+import { IPVotes, IWinner } from './ipvotes';
 
 class Network {
   private events: EventEmitter;
@@ -231,7 +231,7 @@ class Network {
           if (resolvedPeer) {
             this.send(
               resolvedPeer,
-              new Message('publicpong', { node: this.node, publicIp: socket.remoteAddress }),
+              new Message('publicpong', { node: this.node, ip: socket.remoteAddress }),
               (err: Error) => err && this.events.emit('error', new Error('Error during reply: ')),
               true,
             );
@@ -240,7 +240,7 @@ class Network {
           // Send a reply on active socket, so that the remote peer gets a reply even if it's not publically available
           this.reply(
             socket,
-            new Message('pong', { node: this.node }),
+            new Message('pong', { node: this.node, ip: socket.remoteAddress }),
             (err: Error) => err && this.events.emit('error', new Error('Error during reply: ')),
           );
         }
@@ -249,6 +249,11 @@ class Network {
       case 'pong': {
         // Handle from node
         this.handleFromPeer(socket, message);
+
+        // Handle private ip votes
+        if (message.payload && message.payload.ip) {
+          this.voteIp(message.payload.ip, 'private');
+        }
         break;
       }
       case 'publicpong': {
@@ -256,8 +261,8 @@ class Network {
         this.handleFromPeer(socket, message);
 
         // Handle public ip votes
-        if (message.payload && message.payload.publicIp) {
-          this.votePublicIp(message.payload.publicIp);
+        if (message.payload && message.payload.ip) {
+          this.voteIp(message.payload.ip, 'public');
         }
         break;
       }
@@ -282,16 +287,17 @@ class Network {
       return resolvedNode;
     }
   }
-  votePublicIp(ip: string) {
-    const winner = this.votes.add(ip);
-    if (winner && winner !== this.node.address.ip) {
-      this.node.address.ip = winner;
-      this.node.address.type = 'public';
+
+  voteIp(ip: string, type: "public" | "private") {
+    this.votes.add(ip, type);
+    let winner = this.votes.winner();
+    if (winner.type !== "none" && winner.ip && winner.ip !== this.node.address.ip) {
+      this.node.address.ip = winner.ip;
+      this.node.address.type = winner.type;
       this.events.emit('ip:changed', winner);
-    } else if (winner === false && this.node.address.type !== 'public') {
-      this.node.address.type = 'private';
     }
   }
+  
 }
 
 export default Network;

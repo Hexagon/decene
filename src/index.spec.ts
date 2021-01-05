@@ -37,7 +37,7 @@ test('Two ppers communicate (way 1)', (done) => {
   const decentPeer2 = new network(idData2,"127.0.0.1",47481,"localhost:47480",undefined);
   const listenCallback = (message: any) => {
     if (message.type === "pong") {
-      expect(true).toBeTruthy();
+      expect(message.payload.ip).toEqual("127.0.0.1");
       done();
     }
   };

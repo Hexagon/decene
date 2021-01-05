@@ -1,10 +1,17 @@
 import ipaddrJs from 'ipaddr.js';
 
-class IPVotes {
-  private votes: any;
+interface IWinner {
+  ip? : string,
+  type : "public" | "private" | "none"
+};
 
+class IPVotes {
+  private privateVotes: any;
+  private publicVotes: any;
+  
   constructor() {
-    this.votes = {};
+    this.privateVotes = {};
+    this.publicVotes = {};
   }
 
   private ipCheck(ip: string) {
@@ -16,34 +23,73 @@ class IPVotes {
     }
   }
 
-  public add(ip: string): string | false | undefined {
+  public add(ip: string, type: "public" | "private"): IWinner | false | undefined {
+
     // Check ip
     const ipAddr = this.ipCheck(ip);
     if (ipAddr === null) {
       return false;
     }
 
-    // Do not act on private ips
+    // Do not act on private (local) ips
     ipAddr.range();
     if (['linkLocal', 'private', 'loopback', 'carrierGradeNat'].includes(ipAddr.range())) {
       return false;
     }
 
-    this.votes[ip] = (this.votes[ip] || 0) + 1;
+    if (type==="public") {
+      this.publicVotes[ip] = (this.publicVotes[ip] || 0) + 1;
+    } else {
+      this.privateVotes[ip] = (this.privateVotes[ip] || 0) + 1;
+    }
+  }
 
-    let voteCount = 0;
-    let winner;
+  public winner() : IWinner {
+    // Check public votes
+    let publicVoteCount = 0;
+    let publicWinner;
 
-    for (const currentIp of Object.keys(this.votes)) {
-      const currentVotes = this.votes[currentIp];
-      if (currentVotes && currentVotes > voteCount) {
-        voteCount = currentVotes;
-        winner = currentIp;
+    for (const currentIp of Object.keys(this.publicVotes)) {
+      const currentVotes = this.publicVotes[currentIp];
+      if (currentVotes && currentVotes > publicVoteCount) {
+        publicVoteCount = currentVotes;
+        publicWinner = currentIp;
       }
     }
 
-    return winner;
+    if (publicWinner) {
+      let winner : IWinner = {
+        ip: publicWinner,
+        type: "public"
+      };
+      return winner;
+    }
+
+    // Check private votes
+    let privateVoteCount = 0;
+    let privateWinner;
+
+    for (const currentIp of Object.keys(this.privateVotes)) {
+      const currentVotes = this.privateVotes[currentIp];
+      if (currentVotes && currentVotes > privateVoteCount) {
+        privateVoteCount = currentVotes;
+        privateWinner = currentIp;
+      }
+    }
+
+    if (privateWinner) {
+      let winner : IWinner = {
+        ip: privateWinner,
+        type: "private"
+      };
+      return winner;
+    }
+
+    return {
+      type: "none"
+    };
   }
+
 }
 
-export default IPVotes;
+export { IPVotes, IWinner };

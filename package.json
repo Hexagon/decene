@@ -1,6 +1,6 @@
 {
   "name": "decene",
-  "version": "0.0.13",
+  "version": "0.0.14",
   "description": "Framework for creating decentralised distributed p2p networks.",
   "author": "Hexagon <github.com/hexagon>",
   "license": "MIT",
